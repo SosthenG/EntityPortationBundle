@@ -77,6 +77,11 @@ class Export extends AbstractPortation
     {
         $this->_createPHPExcelObject();
 
+        // If there is no extension, add the good one
+        if (preg_match('/\.[a-zA-Z]+$/', $output) === 0) {
+            $output .= $this->_getExtension($outputType);
+        }
+
         $writer   = $this->_phpExcelFactory->createWriter($this->_phpExcelObject, $outputType);
         $response = $this->_phpExcelFactory->createStreamedResponse($writer);
         // adding headers

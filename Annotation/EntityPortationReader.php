@@ -72,7 +72,7 @@ class EntityPortationReader
                     $options = (array)$annotation;
 
                     if (empty($options['getter'])) $options['getter'] = $reflectionMethod->getName();
-                    if (empty($options['valueType'])) $options['valueType'] = $reflectionMethod->getReturnType();
+                    if (empty($options['valueType']) && is_callable(array($reflectionMethod, "getReturnType"))) $options['valueType'] = $reflectionMethod->getReturnType();
 
                     if ($keyExists) {
                         $columns[$columnName] = array_merge($columns[$columnName], $options);
