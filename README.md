@@ -30,7 +30,7 @@ Please note that this bundle is still in development and may have some bugs or w
     );
 ```
 
-## Usage
+## How to use
 
 This bundle uses annotations to detect what it needs to export. To use annotations, you must to include these two classes :
 
