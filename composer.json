@@ -1,5 +1,5 @@
 {
-  "name": "SosthenG/EntityPortationBundle",
+  "name": "sostheng/entity-portation-bundle",
   "description": "This is a bundle that allows you to simply export entities arrays using PHPExcel",
   "type": "symfony-bundle",
   "authors": [
