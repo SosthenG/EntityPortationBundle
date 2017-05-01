@@ -1,5 +1,4 @@
 # EntityPortationBundle
-============
 
 This is a bundle that allows you to simply export entities arrays using PHPExcel.
 
@@ -12,7 +11,7 @@ Please note that this bundle is still in development and may have some bugs or w
 
 ## License
 
-[![License](https://poser.pugx.org/sostheng/entity-portation-bundle/license)](https://packagist.org/packages/sostheng/entity-portation-bundle)
+[![License](https://poser.pugx.org/sostheng/entity-portation-bundle/license)](https://github.com/SosthenG/EntityPortationBundle/blob/master/LICENSE)
 
 ## Installation
 
