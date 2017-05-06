@@ -8,7 +8,7 @@ use SosthenG\EntityPortationBundle\Annotation\PortationGetter;
  * Class ParentEntityTestClass
  *
  * @package SosthenG\EntityPortationBundle\Tests\Entity
- * @EntityPortation(sheetTitle="MySheetTitle", fallBackValue="N/A")
+ * @EntityPortation(sheetTitle="MySheetTitle", fallBackValue="N/A", csvDelimiter=";")
  */
 class ParentEntityTestClass
 {

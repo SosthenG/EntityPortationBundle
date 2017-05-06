@@ -83,6 +83,12 @@ class Export extends AbstractPortation
         }
 
         $writer   = $this->_phpExcelFactory->createWriter($this->_phpExcelObject, $outputType);
+
+        if ($outputType == 'CSV' && !empty($this->_csvDelimiter)) {
+            /** @var $writer \PHPExcel_Writer_CSV */
+            $writer->setDelimiter($this->_csvDelimiter);
+        }
+
         $response = $this->_phpExcelFactory->createStreamedResponse($writer);
         // adding headers
         $dispositionHeader = $response->headers->makeDisposition(
@@ -123,7 +129,7 @@ class Export extends AbstractPortation
         $writer = $this->_phpExcelFactory->createWriter($this->_phpExcelObject, $outputType);
         // TODO : user parameters for writer
 
-        if ($outputType == 'CSV' && empty($this->_csvDelimiter)) {
+        if ($outputType == 'CSV' && !empty($this->_csvDelimiter)) {
             /** @var $writer \PHPExcel_Writer_CSV */
             $writer->setDelimiter($this->_csvDelimiter);
         }
