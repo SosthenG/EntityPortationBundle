@@ -17,12 +17,12 @@ abstract class AbstractPortation
     /**
      * @var array
      */
-    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'valueType' => '');
+    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '', 'valueType' => '', 'objectProperty' => '', 'portations' => '');
 
     /**
      * @var array
      */
-    public static $replacablePrefix = array('get', 'is', 'has');
+    public static $replacablePrefix = array('get', 'is', 'has', 'my', 'set', 'add');
 
     /**
      * @var Factory
@@ -57,6 +57,11 @@ abstract class AbstractPortation
     protected $_booleanValues = array('false', 'true');
 
     /**
+     * @var bool
+     */
+    protected $_annotate = false;
+
+    /**
      * Exportation constructor.
      *
      * @param Factory             $phpExcelFactory PhpExcel Factory service
@@ -77,7 +82,7 @@ abstract class AbstractPortation
      */
     public static function getColumnName($name)
     {
-        $name = trim(str_replace(self::$replacablePrefix, '', strtolower($name)), '_');
+        $name = trim(str_replace(self::$replacablePrefix, '', $name), '_');
 
         return $name;
     }

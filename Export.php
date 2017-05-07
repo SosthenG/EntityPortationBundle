@@ -2,6 +2,7 @@
 namespace SosthenG\EntityPortationBundle;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Prophecy\Exception\Doubler\MethodNotFoundException;
 use SosthenG\EntityPortationBundle\Annotation\EntityPortationReader;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -13,6 +14,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class Export extends AbstractPortation
 {
+    /**
+     * @var array
+     */
+    public static $replacablePrefix = array('get', 'is', 'has', 'my');
+
     /**
      * @var string
      */
@@ -34,30 +40,40 @@ class Export extends AbstractPortation
     protected $_entitiesHaveSameClass = null;
 
     /**
-     * @param object[] $entities The entity array
+     * @var bool
      */
-    public function setEntities(array $entities)
+    protected $_replaceIfExists = true;
+
+    /**
+     * Be careful, if you prefer to let the PortationBundle detect if you entities are instances of the same class,
+     * it will parse all of them to check if they are. It can increase the export time if you have a lot of entities.
+     *
+     * @param object[] $entities The entity array
+     * @param null|bool $sameClass Are entities instance of the exact same class ?
+     * @param bool $replaceIfExists If the reader find two or more columns with same name, should it replace with the last or keep the first ?
+     *
+     * @throws \OutOfBoundsException
+     */
+    public function setEntities(array $entities, $sameClass = null, $replaceIfExists = true)
     {
         if (count($entities) < 1)
             throw new \InvalidArgumentException("The entity array must not be empty.");
 
-        $this->_entities = $entities;
-
-        // TODO : use theses functions on the initial array, before assigning
-        if (!$this->_isAllEntitiesObjects())
-            throw new \InvalidArgumentException("The entities must be objects.");
-
-        if (!$this->_hasCommonParent())
+        if (!$this->_hasCommonParent($entities))
             throw new \InvalidArgumentException("Entities must have a common parent.");
 
-        $this->_setColumnsFromAccessibleProperties();
+        $this->_entities = $entities;
+        $this->_replaceIfExists = $replaceIfExists;
+        $this->_entitiesHaveSameClass = $sameClass;
+
+        $this->_setExportPropertiesFromEntitiesAnnotation();
+
+        $this->_setColumnsFromReader();
 
         if (count($this->_columns) < 1)
             throw new \InvalidArgumentException("Entities have no accessible parameters.");
 
         $this->_phpExcelObject = $this->_phpExcelFactory->createPHPExcelObject();
-
-        $this->_setExportPropertiesFromEntitiesAnnotation($entities);
     }
 
     /**
@@ -185,18 +201,18 @@ class Export extends AbstractPortation
     /**
      * Please ensure your class annotation is on the parent class if you have differents entities.
      * If not, this method will only takes the first entity parameters
-     *
-     * @param array $entities
      */
-    protected function _setExportPropertiesFromEntitiesAnnotation(array $entities)
+    protected function _setExportPropertiesFromEntitiesAnnotation()
     {
         $reader = new EntityPortationReader(new AnnotationReader());
 
-        $properties = $reader->extractEntityParameters($entities[0]);
+        $properties = $reader->extractEntityParameters($this->_entities[0]);
 
         if (!empty($properties->sheetTitle)) $this->_sheetTitle = $properties->sheetTitle;
         if (!empty($properties->fallBackValue)) $this->_fallbackValue = $properties->fallBackValue;
         if (!empty($properties->csvDelimiter)) $this->_csvDelimiter = $properties->csvDelimiter;
+
+        $this->_annotate = !empty($properties);
     }
 
     /**
@@ -251,6 +267,8 @@ class Export extends AbstractPortation
                 )
                     throw new \OutOfBoundsException("There is a position conflict, two columns asked for the same index.");
 
+                $this->_columns[$column]['cell'] = $columnPos;
+
                 $sheet->setCellValue($columnPos . $linePos, $label);
             }
         }
@@ -266,13 +284,14 @@ class Export extends AbstractPortation
                 } while (!empty($sheet->getCell($columnPos . $linePos)
                                       ->getValue()));
 
+                $this->_columns[$column]['cell'] = $columnPos;
+
                 $sheet->setCellValue($columnPos . $linePos, $label);
             }
         }
 
         foreach ($this->_entities as $entity) {
             $linePos++;
-            $columnPos = 'A';
             foreach ($this->_columns as $columnName => $options) {
                 if ($options['visible']) {
                     $getter = $options['getter'];
@@ -280,10 +299,12 @@ class Export extends AbstractPortation
 
                     if (is_callable(array($entity, $getter)))
                         $value = $this->_convertValue($entity->$getter(), $options);
+                    elseif (!empty($entity->$columnName))
+                        $value = $this->_convertValue($entity->$columnName, $options);
+                    elseif ($result = $this->_checkPossibleGetters(new \ReflectionObject($entity), $columnName, $entity))
+                        $value = $this->_convertValue($result, $options);
 
-                    $sheet->setCellValue($columnPos . $linePos, $value);
-
-                    $columnPos++;
+                    $sheet->setCellValue($options['cell'] . $linePos, $value);
                 }
             }
         }
@@ -310,15 +331,30 @@ class Export extends AbstractPortation
      * @param array $options
      *
      * @return string
+     *
+     * @throws MethodNotFoundException
      */
     protected function _convertValue($value, array $options = array())
     {
-        if (is_object($value)) {
+        while (is_object($value)) {
             $refl = new \ReflectionObject($value);
-            if ($refl->hasMethod('__toString')) $value = $refl->getMethod('__toString')
-                                                              ->invoke($value);
-            else $value = (array)$value;
+            if (!empty($options['objectProperty'])) {
+                if ($refl->getProperty($options['objectProperty'])->isPublic()) {
+                    $value = $refl->getProperty($options['objectProperty'])->getValue();
+                }
+                else {
+                    $value = $this->_checkPossibleGetters($refl, $options['objectProperty'], $value);
+                    if ($value === null)
+                        throw new \InvalidArgumentException("No getter was found in the class '".$refl->getName()."' for the property '".$options['objectProperty']."'");
+                }
+            }
+            else {
+                if ($refl->hasMethod('__toString')) $value = $refl->getMethod('__toString')->invoke($value);
+                else $value = (array)$value;
+            }
         }
+
+        // TODO : Gérer les tableaux d'objets, eventuellement via une annotation qui spécifie quel getter utiliser
 
         if (is_array($value)) {
             $value = array_map(array($this, '_convertValue'), $value);
@@ -339,16 +375,37 @@ class Export extends AbstractPortation
     }
 
     /**
-     * Detect the entities accessible properties and define the output columns from them.
-     * In case of different objects (but inheriting from the same class), properties of all the objects will be used
+     * @param \ReflectionObject $refl
+     * @param string            $property
+     * @param object             $object
+     *
+     * @return mixed
+     *
+     * @throws MethodNotFoundException
      */
-    protected function _setColumnsFromAccessibleProperties()
+    protected function _checkPossibleGetters(\ReflectionObject $refl, $property, $object)
+    {
+        foreach (self::$replacablePrefix as $prefix) {
+            if ($refl->hasMethod($prefix.ucfirst($property)) && $refl->getMethod($prefix.ucfirst($property))->isPublic()) {
+                return $refl->getMethod($prefix.ucfirst($property))->invoke($object);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Detect the entities possible columns
+     * In case of different objects (but inheriting from the same class), properties of all the objects will be used
+     *
+     * @throws \OutOfBoundsException
+     */
+    protected function _setColumnsFromReader()
     {
         $reader = new EntityPortationReader(new AnnotationReader());
 
         // If all entities are from the exact same class, just add the columns of the first one which are the sames for the others
         if ($this->_entitiesAreInstanceOfSameClass()) {
-            $columns = $reader->extractColumnsFromEntity($this->_entities[0]);
+            $columns = $reader->extractColumnsFromEntity($this->_entities[0], $this->_replaceIfExists, $this->_annotate);
             $this->addColumns($columns);
         }
         // Else, merge all classes columns
@@ -357,7 +414,7 @@ class Export extends AbstractPortation
             foreach ($this->_entities as $entity) {
                 if (!in_array(($class = get_class($entity)), $classParsed)) {
                     $classParsed[] = $class;
-                    $columns       = $reader->extractColumnsFromEntity($entity);
+                    $columns       = $reader->extractColumnsFromEntity($entity, $this->_replaceIfExists, $this->_annotate);
                     $this->addColumns($columns);
                 }
             }
@@ -380,13 +437,15 @@ class Export extends AbstractPortation
     }
 
     /**
+     * @param array $entities
+     *
      * @return bool
      */
-    protected function _hasCommonParent()
+    protected function _hasCommonParent(array $entities)
     {
-        $higherParent = $this->_getObjectHigherParent($this->_entities[0]);
-        for ($i = 1; $i < count($this->_entities); $i++) {
-            if ($higherParent != $this->_getObjectHigherParent($this->_entities[$i]))
+        $higherParent = $this->_getObjectHigherParent($entities[0]);
+        for ($i = 1; $i < count($entities); $i++) {
+            if ($higherParent != $this->_getObjectHigherParent($entities[$i]))
                 return false;
         }
 
@@ -394,7 +453,7 @@ class Export extends AbstractPortation
     }
 
     /**
-     * @param $object
+     * @param object $object
      *
      * @return string The classname of the higher parent for this object
      */
@@ -403,15 +462,5 @@ class Export extends AbstractPortation
         for ($higher = ($class = get_class($object)); $class = get_parent_class($class); $higher = $class) ;
 
         return $higher;
-    }
-
-    /**
-     * @return bool
-     */
-    protected function _isAllEntitiesObjects()
-    {
-        foreach ($this->_entities as $entity) if (!is_object($entity)) return false;
-
-        return true;
     }
 }

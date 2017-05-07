@@ -5,6 +5,7 @@ namespace SosthenG\EntityPortationBundle\Tests\ExportTests;
 use SosthenG\EntityPortationBundle\Export;
 use SosthenG\EntityPortationBundle\Tests\Entity\ChildEntityATestClass;
 use SosthenG\EntityPortationBundle\Tests\Entity\ChildEntityBTestClass;
+use SosthenG\EntityPortationBundle\Tests\Entity\IncludedObject;
 use SosthenG\EntityPortationBundle\Tests\Entity\OtherEntityTestClass;
 use SosthenG\EntityPortationBundle\Tests\Entity\ParentEntityTestClass;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -41,13 +42,13 @@ class ConverterTest extends KernelTestCase
 
         $entities   = array();
         $entities[] = new ParentEntityTestClass(1, "James", "Doe", 54);
-        $entities[] = new ChildEntityATestClass(2, "John", "Doe", 25, true, "22 Baker street");
+        $entities[] = new ChildEntityATestClass(2, "John", "Doe", 25, true, "22 Baker street", new IncludedObject(1, 'Blobinette'));
         $entities[] = new ChildEntityBTestClass(3, "Jane", "Doe", 33, '0101010101');
 
         $entityExport = new Export($this->phpexcel, $this->translator);
         $entityExport->setEntities($entities);
 
-        $columns = array('id', 'firstname', 'lastname', 'adress', 'phonenumber');
+        $columns = array('id', 'firstname', 'lastname', 'adress', 'phoneNumber');
         foreach ($columns as $column) {
             $this->assertArrayHasKey($column, $entityExport->getColumns());
         }
@@ -99,7 +100,7 @@ class ConverterTest extends KernelTestCase
     public function testNoCommonParent()
     {
         $entities   = array();
-        $entities[] = new ChildEntityATestClass(1, "John", "Doe", 25, true, "22 Baker street");
+        $entities[] = new ChildEntityATestClass(1, "John", "Doe", 25, true, "22 Baker street", new IncludedObject(1, 'Blobinette'));
         $entities[] = new OtherEntityTestClass("blob");
 
         $entityExport = new Export($this->phpexcel, $this->translator);

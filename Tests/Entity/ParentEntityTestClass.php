@@ -2,7 +2,7 @@
 namespace SosthenG\EntityPortationBundle\Tests\Entity;
 
 use SosthenG\EntityPortationBundle\Annotation\EntityPortation;
-use SosthenG\EntityPortationBundle\Annotation\PortationGetter;
+use SosthenG\EntityPortationBundle\Annotation\PortableProperty;
 
 /**
  * Class ParentEntityTestClass
@@ -12,13 +12,22 @@ use SosthenG\EntityPortationBundle\Annotation\PortationGetter;
  */
 class ParentEntityTestClass
 {
+    /**
+     * @PortableProperty(label="Identifiant", position="0")
+     */
     private $id;
 
+    /**
+     * @PortableProperty(label="Prénom", position="1")
+     */
     private $firstname;
 
+    /**
+     * @PortableProperty(label="Nom", position="2")
+     */
     private $lastname;
 
-    private $age;
+    public $age;
 
     /**
      * ParentEntityTestClass constructor.
@@ -38,7 +47,6 @@ class ParentEntityTestClass
 
     /**
      * @return mixed
-     * @PortationGetter(label="Identifiant", position="0")
      */
     public function getId()
     {
@@ -47,7 +55,6 @@ class ParentEntityTestClass
 
     /**
      * @return mixed
-     * @PortationGetter(label="Prénom", position="1")
      */
     public function getFirstname()
     {
@@ -56,7 +63,6 @@ class ParentEntityTestClass
 
     /**
      * @return mixed
-     * @PortationGetter(label="Nom", position="2")
      */
     public function getLastname()
     {

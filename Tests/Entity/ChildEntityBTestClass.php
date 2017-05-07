@@ -1,7 +1,7 @@
 <?php
 namespace SosthenG\EntityPortationBundle\Tests\Entity;
 
-use SosthenG\EntityPortationBundle\Annotation\PortationGetter;
+use SosthenG\EntityPortationBundle\Annotation\PortableProperty;
 
 /**
  * Class ChildEntityBTestClass
@@ -10,6 +10,9 @@ use SosthenG\EntityPortationBundle\Annotation\PortationGetter;
  */
 class ChildEntityBTestClass extends ParentEntityTestClass
 {
+    /**
+     * @PortableProperty()
+     */
     private $phoneNumber;
 
     /**
@@ -27,7 +30,6 @@ class ChildEntityBTestClass extends ParentEntityTestClass
      * Should be added because the var is private
      *
      * @return string
-     * @PortationGetter()
      */
     public function getPhoneNumber()
     {
