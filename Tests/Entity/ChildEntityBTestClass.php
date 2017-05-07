@@ -16,14 +16,20 @@ class ChildEntityBTestClass extends ParentEntityTestClass
     private $phoneNumber;
 
     /**
+     * @PortableProperty(valueType="date")
+     */
+    private $dateNaissance;
+
+    /**
      * @inheritdoc
      *
      * @param $phoneNumber
      */
-    public function __construct($id, $firstname, $lastname, $age, $phoneNumber)
+    public function __construct($id, $firstname, $lastname, $age, $phoneNumber, $dateNaissance)
     {
         parent::__construct($id, $firstname, $lastname, $age);
         $this->phoneNumber = $phoneNumber;
+        $this->dateNaissance = $dateNaissance;
     }
 
     /**
@@ -34,5 +40,13 @@ class ChildEntityBTestClass extends ParentEntityTestClass
     public function getPhoneNumber()
     {
         return $this->phoneNumber;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDateNaissance()
+    {
+        return $this->dateNaissance;
     }
 }

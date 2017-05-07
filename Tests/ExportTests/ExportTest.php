@@ -43,7 +43,7 @@ class ConverterTest extends KernelTestCase
         $entities   = array();
         $entities[] = new ParentEntityTestClass(1, "James", "Doe", 54);
         $entities[] = new ChildEntityATestClass(2, "John", "Doe", 25, true, "22 Baker street", new IncludedObject(1, 'Blobinette'));
-        $entities[] = new ChildEntityBTestClass(3, "Jane", "Doe", 33, '0101010101');
+        $entities[] = new ChildEntityBTestClass(3, "Jane", "Doe", 33, '0101010101', new \DateTime());
 
         $entityExport = new Export($this->phpexcel, $this->translator);
         $entityExport->setEntities($entities);

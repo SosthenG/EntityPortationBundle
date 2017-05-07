@@ -59,7 +59,7 @@ class EntityPortationReader
         $this->_sortElements($properties);
 
         foreach ($properties as $property) {
-            $columnName = AbstractPortation::getColumnName($property->getName());
+            $columnName = AbstractPortation::getColumnName($property->getName(), false);
             $options = array();
             if ($annotate) {
                 $annotation = $this->_reader->getPropertyAnnotation($property, PortableProperty::class);
@@ -129,10 +129,10 @@ class EntityPortationReader
         $name = $method->getName();
         $getterPrefixes = implode('|', Export::$replacablePrefix);
         $setterPrefixes = implode('|', Import::$replacablePrefix);
-        if (preg_match("/^".$getterPrefixes."/", $name)) {
+        if (preg_match("/^(?>".$getterPrefixes.")/", $name)) {
             return "GETTER";
         }
-        elseif (preg_match("/^".$setterPrefixes."/", $name)) {
+        elseif (preg_match("/^(?>".$setterPrefixes.")/", $name)) {
             return "SETTER";
         }
         return "";

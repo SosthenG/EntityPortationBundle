@@ -37,9 +37,17 @@ abstract class AbstractPortable
      * If empty, the reader will look for a @ var annotation
      *
      * @var string
-     * @Enum({"", "string", "number", "array", "object", "boolean"})
+     * @Enum({"", "string", "number", "array", "object", "boolean", "date"})
      */
     public $valueType = '';
+
+    /**
+     * If the value is of type "date", you can specify a conversion format for it
+     * You need to use a php valid date format.
+     *
+     * @var string
+     */
+    public $dateFormat = 'Y-m-d';
 
     /**
      * For objects types, you can choose which property of the object will be used for Portation

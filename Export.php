@@ -367,7 +367,10 @@ class Export extends AbstractPortation
             }
         }
 
-        if (is_string($value)) {
+        if (!empty($options) && $options['valueType'] == 'date') {
+            $value = date($options['dateFormat'], strtotime($value));
+        }
+        elseif (is_string($value)) {
             $value = $this->_translator->trans($value);
         }
 

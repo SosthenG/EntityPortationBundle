@@ -17,7 +17,7 @@ abstract class AbstractPortation
     /**
      * @var array
      */
-    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '', 'valueType' => '', 'objectProperty' => '', 'portations' => '');
+    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '', 'valueType' => '', 'objectProperty' => '', 'portations' => '', 'dateFormat' => 'Y-m-d');
 
     /**
      * @var array
@@ -80,9 +80,11 @@ abstract class AbstractPortation
      *
      * @return string
      */
-    public static function getColumnName($name)
+    public static function getColumnName($name, $replacePrefix = true)
     {
-        $name = trim(str_replace(self::$replacablePrefix, '', $name), '_');
+        if ($replacePrefix) $name = preg_replace('/^(?>'.implode('|', self::$replacablePrefix).')/', '', $name);
+
+        $name = trim($name, '_');
 
         return $name;
     }
