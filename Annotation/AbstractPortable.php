@@ -56,7 +56,7 @@ abstract class AbstractPortable
      *
      * @var string
      */
-    public $objectProperty = ''; // Todo : use this
+    public $objectProperty = '';
 
     /**
      * On which type of portation this attribute/method should be used (default is both)

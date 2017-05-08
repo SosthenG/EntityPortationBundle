@@ -404,11 +404,11 @@ class Export extends AbstractPortation
      */
     protected function _setColumnsFromReader()
     {
-        $reader = new EntityPortationReader(new AnnotationReader());
+        $reader = new EntityPortationReader(new AnnotationReader(), 'EXPORT');
 
         // If all entities are from the exact same class, just add the columns of the first one which are the sames for the others
         if ($this->_entitiesAreInstanceOfSameClass()) {
-            $columns = $reader->extractColumnsFromEntity($this->_entities[0], $this->_replaceIfExists, $this->_annotate);
+            $columns = $reader->extractColumnsFromEntity($this->_entities[0], $this->_replaceIfExists, $this->_annotate, 'EXPORT');
             $this->addColumns($columns);
         }
         // Else, merge all classes columns
@@ -417,7 +417,7 @@ class Export extends AbstractPortation
             foreach ($this->_entities as $entity) {
                 if (!in_array(($class = get_class($entity)), $classParsed)) {
                     $classParsed[] = $class;
-                    $columns       = $reader->extractColumnsFromEntity($entity, $this->_replaceIfExists, $this->_annotate);
+                    $columns       = $reader->extractColumnsFromEntity($entity, $this->_replaceIfExists, $this->_annotate, 'EXPORT');
                     $this->addColumns($columns);
                 }
             }
