@@ -16,7 +16,8 @@ class ChildEntityBTestClass extends ParentEntityTestClass
     private $phoneNumber;
 
     /**
-     * @PortableProperty(valueType="date")
+     * @var \DateTime
+     * @PortableProperty(getter="getDateFormat")
      */
     private $dateNaissance;
 
@@ -48,5 +49,10 @@ class ChildEntityBTestClass extends ParentEntityTestClass
     public function getDateNaissance()
     {
         return $this->dateNaissance;
+    }
+
+    public function getDateFormat()
+    {
+        return $this->dateNaissance->format('Y-m-d');
     }
 }

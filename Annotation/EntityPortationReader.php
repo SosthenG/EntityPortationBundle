@@ -116,9 +116,6 @@ class EntityPortationReader
 
                             if (empty($options['getter']) && $options['methodType'] == 'GETTER') $options['getter'] = $method->getName();
                             if (empty($options['setter']) && $options['methodType'] == 'SETTER') $options['setter'] = $method->getName();
-
-                            if (empty($options['valueType']) && is_callable(array($method, "getReturnType"))) $options['valueType'] = $method->getReturnType();
-
                             $this->_columns[$columnName] = AbstractPortation::formatOptionsArray($options);
                         }
                     }
@@ -128,7 +125,6 @@ class EntityPortationReader
                         $options['methodType'] = $this->_getMethodType($method);
                         if ($options['methodType'] == 'GETTER') $options['getter'] = $method->getName();
                         if ($options['methodType'] == 'SETTER') $options['setter'] = $method->getName();
-                        if (is_callable(array($method, "getReturnType"))) $options['valueType'] = $method->getReturnType();
                         $this->_columns[$columnName] = AbstractPortation::formatOptionsArray($options);
                     }
                 }

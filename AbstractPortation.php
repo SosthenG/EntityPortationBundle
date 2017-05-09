@@ -17,12 +17,14 @@ abstract class AbstractPortation
     /**
      * @var array
      */
-    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '', 'valueType' => '', 'objectProperty' => '', 'portations' => '', 'dateFormat' => 'Y-m-d');
+    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '', 'portations' => '', 'translate' => ''); // TODO : handle the translate option
 
     /**
      * @var array
      */
     public static $replacablePrefix = array('get', 'is', 'has', 'my', 'set', 'add');
+
+    /* END OF STATIC PART */
 
     /**
      * @var Factory
@@ -33,8 +35,6 @@ abstract class AbstractPortation
      * @var \PHPExcel
      */
     protected $_phpExcelObject;
-
-    /* END OF STATIC PART */
 
     /**
      * @var TranslatorInterface
@@ -50,11 +50,6 @@ abstract class AbstractPortation
      * @var array
      */
     protected $_columns = array();
-
-    /**
-     * @var array
-     */
-    protected $_booleanValues = array('false', 'true');
 
     /**
      * @var bool
@@ -249,39 +244,17 @@ abstract class AbstractPortation
     }
 
     /**
-     * Set the boolean values label
-     *
-     * @param array $booleanValues The first value need to be the "true" label, the second the "false" label
-     *
-     * @return AbstractPortation
-     */
-    public function setBooleanValues(array $booleanValues)
-    {
-        if (count($booleanValues) != 2)
-            throw new \InvalidArgumentException('The boolean values array must have a size of 2.');
-
-        foreach ($booleanValues as $boolVal => $boolLabel) {
-            if (!is_string($boolLabel))
-                throw new \InvalidArgumentException('The label must be a valid string.');
-
-            $this->_booleanValues[(int)$boolVal] = $boolLabel;
-        }
-
-        return $this;
-    }
-
-    /**
      * @param array $columns
      *
      * @return AbstractPortation
      *
      * @throws \OutOfBoundsException
      */
-    protected function addColumns(array $columns)
+    protected function _addColumns(array $columns)
     {
         foreach ($columns as $column => $options) {
             if (!array_key_exists($column, $this->_columns))
-                $this->addColumn($column, $options);
+                $this->_addColumn($column, $options);
             else
                 $this->setColumnOptions($column, $options);
         }
@@ -295,7 +268,7 @@ abstract class AbstractPortation
      *
      * @return AbstractPortation
      */
-    protected function addColumn($column, array $options)
+    protected function _addColumn($column, array $options)
     {
         if (!is_string($column))
             throw new \InvalidArgumentException("This is not a valid column name.");
@@ -303,50 +276,5 @@ abstract class AbstractPortation
         $this->_columns[$column] = self::formatOptionsArray($options);
 
         return $this;
-    }
-
-    /**
-     * Sort the columns by there positions
-     * Place the auto columns at the available indexes
-     *
-     * @deprecated TODO consider removing
-     */
-    protected function _sortColumns()
-    {
-        $newColunms  = array();
-        $autoColumns = array();
-        foreach ($this->_columns as $column => $options) {
-            if ($options['position'] != 'auto') {
-                if (!empty($newColunms[$options['position']]))
-                    throw new \OutOfBoundsException("There is a position conflict, two columns asked for the same index.");
-
-                $newColunms[(int)$options['position']] = array($column => $options);
-            }
-            else {
-                $autoColumns[] = array($column => $options);
-            }
-        }
-
-        $countColumns   = count($this->_columns);
-        $this->_columns = array();
-        for ($i = 0; $i < $countColumns; $i++) {
-            if (array_key_exists($i, $newColunms)) {
-                $this->_columns += $newColunms[$i];
-                unset($newColunms[$i]);
-            }
-            else {
-                $this->_columns += array_shift($autoColumns);
-            }
-        }
-        if (!empty($newColunms)) {
-            foreach ($newColunms as $key => $val) {
-                $this->_columns[$key] = $val;
-            }
-        }
-        if (!empty($autoColumns)) {
-            foreach ($autoColumns as $key => $val) {
-                $this->_columns[$key] = $val;
-            }
-        }
     }
 }

@@ -11,7 +11,7 @@ use SosthenG\EntityPortationBundle\Annotation\PortableProperty;
 class ChildEntityATestClass extends ParentEntityTestClass
 {
     /**
-     * @PortableProperty(valueType="boolean")
+     * @PortableProperty()
      */
     public  $activated;
 
@@ -22,7 +22,7 @@ class ChildEntityATestClass extends ParentEntityTestClass
 
     /**
      * @var IncludedObject
-     * @PortableProperty(valueType="object", objectProperty="nom")
+     * @PortableProperty(getter="getObjectValue")
      */
     private $object;
 
@@ -78,5 +78,10 @@ class ChildEntityATestClass extends ParentEntityTestClass
         $this->object = $object;
 
         return $this;
+    }
+
+    public function getObjectValue()
+    {
+        return $this->object->getNom();
     }
 }

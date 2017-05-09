@@ -298,11 +298,11 @@ class Export extends AbstractPortation
                     $value  = $this->_translator->trans($this->_fallbackValue);
 
                     if (is_callable(array($entity, $getter)))
-                        $value = $this->_convertValue($entity->$getter(), $options);
+                        $value = $this->_convertValue($entity->$getter(), $options['translate']);
                     elseif (!empty($entity->$columnName))
-                        $value = $this->_convertValue($entity->$columnName, $options);
+                        $value = $this->_convertValue($entity->$columnName, $options['translate']);
                     elseif ($result = $this->_checkPossibleGetters(new \ReflectionObject($entity), $columnName, $entity))
-                        $value = $this->_convertValue($result, $options);
+                        $value = $this->_convertValue($result, $options['translate']);
 
                     $sheet->setCellValue($options['cell'] . $linePos, $value);
                 }
@@ -324,53 +324,29 @@ class Export extends AbstractPortation
      *
      * If the value is an object, the __toString method will be called if defined, or the object will be converted to array =>
      * If the value is an array, implode it to a string with a comma separator
-     * If the value is a boolean, replace it with the booleanValues (you can change these with the "setBooleanValue" method)
-     * This method will try to translate strings with the translator service.
+     * This method will try to translate strings with the translator service if the translate option is "true"
      *
-     * @param mixed $value
-     * @param array $options
+     * @param mixed   $value
+     * @param boolean $translate
      *
      * @return string
      *
      * @throws MethodNotFoundException
      */
-    protected function _convertValue($value, array $options = array())
+    protected function _convertValue($value, $translate = false)
     {
         while (is_object($value)) {
             $refl = new \ReflectionObject($value);
-            if (!empty($options['objectProperty'])) {
-                if ($refl->getProperty($options['objectProperty'])->isPublic()) {
-                    $value = $refl->getProperty($options['objectProperty'])->getValue();
-                }
-                else {
-                    $value = $this->_checkPossibleGetters($refl, $options['objectProperty'], $value);
-                    if ($value === null)
-                        throw new \InvalidArgumentException("No getter was found in the class '".$refl->getName()."' for the property '".$options['objectProperty']."'");
-                }
-            }
-            else {
-                if ($refl->hasMethod('__toString')) $value = $refl->getMethod('__toString')->invoke($value);
-                else $value = (array)$value;
-            }
+            if ($refl->hasMethod('__toString')) $value = $refl->getMethod('__toString')->invoke($value);
+            else $value = (array)$value;
         }
-
-        // TODO : Gérer les tableaux d'objets, eventuellement via une annotation qui spécifie quel getter utiliser
 
         if (is_array($value)) {
             $value = array_map(array($this, '_convertValue'), $value);
             $value = implode(', ', $value);
         }
 
-        if (!empty($options)) {
-            if ($options['valueType'] == 'boolean') {
-                $value = $value ? $this->_translator->trans($this->_booleanValues[1]) : $this->_translator->trans($this->_booleanValues[0]);
-            }
-        }
-
-        if (!empty($options) && $options['valueType'] == 'date') {
-            $value = date($options['dateFormat'], strtotime($value));
-        }
-        elseif (is_string($value)) {
+        if (is_string($value) && $translate) {
             $value = $this->_translator->trans($value);
         }
 
@@ -408,8 +384,8 @@ class Export extends AbstractPortation
 
         // If all entities are from the exact same class, just add the columns of the first one which are the sames for the others
         if ($this->_entitiesAreInstanceOfSameClass()) {
-            $columns = $reader->extractColumnsFromEntity($this->_entities[0], $this->_replaceIfExists, $this->_annotate, 'EXPORT');
-            $this->addColumns($columns);
+            $columns = $reader->extractColumnsFromEntity($this->_entities[0], $this->_replaceIfExists, $this->_annotate);
+            $this->_addColumns($columns);
         }
         // Else, merge all classes columns
         else {
@@ -417,8 +393,8 @@ class Export extends AbstractPortation
             foreach ($this->_entities as $entity) {
                 if (!in_array(($class = get_class($entity)), $classParsed)) {
                     $classParsed[] = $class;
-                    $columns       = $reader->extractColumnsFromEntity($entity, $this->_replaceIfExists, $this->_annotate, 'EXPORT');
-                    $this->addColumns($columns);
+                    $columns       = $reader->extractColumnsFromEntity($entity, $this->_replaceIfExists, $this->_annotate);
+                    $this->_addColumns($columns);
                 }
             }
         }

@@ -53,7 +53,6 @@ class ConverterTest extends KernelTestCase
             $this->assertArrayHasKey($column, $entityExport->getColumns());
         }
 
-        $entityExport->setBooleanValues(array("nope", "yep"));
         $entityExport->setSheetTitle("Sheet for " . $user);
         $entityExport->getProperties()
                      ->setCreator($user)
