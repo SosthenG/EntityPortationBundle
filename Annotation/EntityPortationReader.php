@@ -20,11 +20,6 @@ class EntityPortationReader
     protected $_reader;
 
     /**
-     * @var string
-     */
-    protected $_type = 'BOTH';
-
-    /**
      * @var array
      */
     protected $_columns = array();
@@ -33,14 +28,15 @@ class EntityPortationReader
      * EntityPortationReader constructor.
      *
      * @param Reader $reader
-     * @param string $type
      */
-    public function __construct(Reader $reader, $type = 'BOTH')
+    public function __construct(Reader $reader)
     {
         $this->_reader = $reader;
-        $this->_type = $type;
     }
 
+    /**
+     * @param &array $elements
+     */
     protected function _sortElements(&$elements) {
         uasort($elements, function($a, $b) {
             /**
@@ -60,6 +56,11 @@ class EntityPortationReader
         });
     }
 
+    /**
+     * @param \ReflectionObject $reflectionObject
+     * @param bool              $replaceIfExists
+     * @param bool              $annotate
+     */
     protected function extractColumnsFromProperties(\ReflectionObject $reflectionObject, $replaceIfExists, $annotate) {
 
         if ($annotate) // If annotate mode, get all properties to check their annotations
@@ -77,8 +78,7 @@ class EntityPortationReader
                 $annotation = $this->_reader->getPropertyAnnotation($property, PortableProperty::class);
                 if ($annotation !== null) {
                     $options = (array)$annotation;
-                    $isTypeCorrect = $options['portations'] == 'BOTH' || $options['portations'] == $this->_type;
-                    if ($isTypeCorrect && (!(array_key_exists($columnName, $this->_columns)) || $replaceIfExists)) {
+                    if (!(array_key_exists($columnName, $this->_columns)) || $replaceIfExists) {
                         $this->_columns[$columnName] = AbstractPortation::formatOptionsArray($options);
                     }
                 }
@@ -91,6 +91,11 @@ class EntityPortationReader
         }
     }
 
+    /**
+     * @param \ReflectionObject $reflectionObject
+     * @param bool              $replaceIfExists
+     * @param bool              $annotate
+     */
     protected function extractColumnsFromMethods(\ReflectionObject $reflectionObject, $replaceIfExists, $annotate) {
         if ($annotate) // If annotate mode, get all methods to check their annotations
             $methods = $reflectionObject->getMethods();
@@ -109,15 +114,11 @@ class EntityPortationReader
                     if ($annotation !== null) {
                         $options = (array)$annotation;
 
-                        $isTypeCorrect = $options['portations'] == 'BOTH' || $options['portations'] == $this->_type;
+                        if (empty($options['methodType'])) $options['methodType'] = $this->_getMethodType($method);
 
-                        if ($isTypeCorrect) {
-                            if (empty($options['methodType'])) $options['methodType'] = $this->_getMethodType($method);
-
-                            if (empty($options['getter']) && $options['methodType'] == 'GETTER') $options['getter'] = $method->getName();
-                            if (empty($options['setter']) && $options['methodType'] == 'SETTER') $options['setter'] = $method->getName();
-                            $this->_columns[$columnName] = AbstractPortation::formatOptionsArray($options);
-                        }
+                        if (empty($options['getter']) && $options['methodType'] == 'GETTER') $options['getter'] = $method->getName();
+                        if (empty($options['setter']) && $options['methodType'] == 'SETTER') $options['setter'] = $method->getName();
+                        $this->_columns[$columnName] = AbstractPortation::formatOptionsArray($options);
                     }
                 }
                 else {

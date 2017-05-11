@@ -31,20 +31,4 @@ abstract class AbstractPortable
      * @var string
      */
     public $position = 'auto';
-
-    /**
-     * On which type of portation this attribute/method should be used (default is both)
-     *
-     * @var string
-     * @Enum({"EXPORT", "IMPORT", "BOTH"})
-     */
-    public $portations = 'BOTH'; // TODO : Check if usefuls
-
-    /**
-     * If true, the Portation classes will try to translate the textual value.
-     * If there is not translations available, it will shows the value as it iss
-     *
-     * @var boolean
-     */
-    public $translate = false;
 }

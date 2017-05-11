@@ -17,7 +17,7 @@ abstract class AbstractPortation
     /**
      * @var array
      */
-    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '', 'portations' => '', 'translate' => ''); // TODO : handle the translate option
+    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '');
 
     /**
      * @var array
@@ -37,11 +37,6 @@ abstract class AbstractPortation
     protected $_phpExcelObject;
 
     /**
-     * @var TranslatorInterface
-     */
-    protected $_translator;
-
-    /**
      * @var array
      */
     protected $_entities = array();
@@ -57,15 +52,20 @@ abstract class AbstractPortation
     protected $_annotate = false;
 
     /**
+     * @var TranslatorInterface
+     */
+    protected $_translator = null;
+
+    /**
      * Exportation constructor.
      *
      * @param Factory             $phpExcelFactory PhpExcel Factory service
-     * @param TranslatorInterface $translator      Symfony translator, for translating your
+     * @param TranslatorInterface $translator
      */
     public function __construct(Factory $phpExcelFactory, TranslatorInterface $translator)
     {
         $this->_phpExcelFactory = $phpExcelFactory;
-        $this->_translator      = $translator;
+        $this->_translator = $translator;
     }
 
     /**

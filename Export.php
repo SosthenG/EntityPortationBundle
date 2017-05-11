@@ -143,7 +143,6 @@ class Export extends AbstractPortation
         }
 
         $writer = $this->_phpExcelFactory->createWriter($this->_phpExcelObject, $outputType);
-        // TODO : user parameters for writer
 
         if ($outputType == 'CSV' && !empty($this->_csvDelimiter)) {
             /** @var $writer \PHPExcel_Writer_CSV */
@@ -240,6 +239,7 @@ class Export extends AbstractPortation
     /**
      * Generate the PHPExcel for the given entities
      * Automatically called when getResponse or saveAsfile are called.
+     * Translate the columns names, if a translation exists
      */
     protected function _createPHPExcelObject()
     {
@@ -250,21 +250,16 @@ class Export extends AbstractPortation
         $sheet   = $this->_phpExcelObject->setActiveSheetIndex(0);
         $linePos = '1';
 
-        // Sort the columns to match the "position" option
-        //$this->_sortColumns(); // TODO Consider remove if the other solution works
-
         $autoColumns = array();
         foreach ($this->_columns as $column => $options) {
             if ($options['position'] == 'auto') {
                 $autoColumns[$column] = $options;
             }
             elseif ($options['visible']) {
-                $label = !empty($options['label']) ? $options['label'] : $column;
+                $label = !empty($options['label']) ? $this->_translator->trans($options['label']) : $column;
 
                 $columnPos = \PHPExcel_Cell::stringFromColumnIndex($options['position']);
-                if (!empty($sheet->getCell($columnPos . $linePos)
-                                 ->getValue())
-                )
+                if (!empty($sheet->getCell($columnPos . $linePos)->getValue()))
                     throw new \OutOfBoundsException("There is a position conflict, two columns asked for the same index.");
 
                 $this->_columns[$column]['cell'] = $columnPos;
@@ -295,14 +290,14 @@ class Export extends AbstractPortation
             foreach ($this->_columns as $columnName => $options) {
                 if ($options['visible']) {
                     $getter = $options['getter'];
-                    $value  = $this->_translator->trans($this->_fallbackValue);
+                    $value  = $this->_fallbackValue;
 
                     if (is_callable(array($entity, $getter)))
-                        $value = $this->_convertValue($entity->$getter(), $options['translate']);
+                        $value = $this->_convertValue($entity->$getter());
                     elseif (!empty($entity->$columnName))
-                        $value = $this->_convertValue($entity->$columnName, $options['translate']);
+                        $value = $this->_convertValue($entity->$columnName);
                     elseif ($result = $this->_checkPossibleGetters(new \ReflectionObject($entity), $columnName, $entity))
-                        $value = $this->_convertValue($result, $options['translate']);
+                        $value = $this->_convertValue($result);
 
                     $sheet->setCellValue($options['cell'] . $linePos, $value);
                 }
@@ -320,20 +315,18 @@ class Export extends AbstractPortation
     }
 
     /**
-     * Recursive method that convert a given entity property value to string and try to translate it
+     * Recursive method that convert a given entity property value to string
      *
      * If the value is an object, the __toString method will be called if defined, or the object will be converted to array =>
      * If the value is an array, implode it to a string with a comma separator
-     * This method will try to translate strings with the translator service if the translate option is "true"
      *
      * @param mixed   $value
-     * @param boolean $translate
      *
      * @return string
      *
      * @throws MethodNotFoundException
      */
-    protected function _convertValue($value, $translate = false)
+    protected function _convertValue($value)
     {
         while (is_object($value)) {
             $refl = new \ReflectionObject($value);
@@ -344,10 +337,6 @@ class Export extends AbstractPortation
         if (is_array($value)) {
             $value = array_map(array($this, '_convertValue'), $value);
             $value = implode(', ', $value);
-        }
-
-        if (is_string($value) && $translate) {
-            $value = $this->_translator->trans($value);
         }
 
         return $value;
