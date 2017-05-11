@@ -141,8 +141,8 @@ class EntityPortationReader
     protected function _getMethodType(\ReflectionMethod $method)
     {
         $name = $method->getName();
-        $getterPrefixes = implode('|', Export::$replacablePrefix);
-        $setterPrefixes = implode('|', Import::$replacablePrefix);
+        $getterPrefixes = implode('|', Export::getReplaceablePrefixes());
+        $setterPrefixes = implode('|', Import::getReplaceablePrefixes());
         if (preg_match("/^(?>".$getterPrefixes.")/", $name)) {
             return "GETTER";
         }

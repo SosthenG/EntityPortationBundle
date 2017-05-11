@@ -17,22 +17,17 @@ class Export extends AbstractPortation
     /**
      * @var array
      */
-    public static $replacablePrefix = array('get', 'is', 'has', 'my');
+    public static $replaceablePrefixes = array('get', 'is', 'has', 'my');
+
+    public static function getReplaceablePrefixes()
+    {
+        return self::$replaceablePrefixes;
+    }
 
     /**
      * @var string
      */
     protected $_sheetTitle = '';
-
-    /**
-     * @var string
-     */
-    protected $_fallbackValue = '';
-
-    /**
-     * @var string
-     */
-    protected $_csvDelimiter = '';
 
     /**
      * @var bool|null
@@ -157,29 +152,6 @@ class Export extends AbstractPortation
     /**
      * @return string
      */
-    public function getFallbackValue()
-    {
-        return $this->_fallbackValue;
-    }
-
-    /**
-     * Set the fallback value if a cell value is empty for an entity.
-     * Default is to put an empty string in the cell.
-     *
-     * @param string $fallbackValue
-     *
-     * @return Export
-     */
-    public function setFallbackValue($fallbackValue = '')
-    {
-        $this->_fallbackValue = $fallbackValue;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
     public function getSheetTitle()
     {
         return $this->_sheetTitle;
@@ -188,7 +160,7 @@ class Export extends AbstractPortation
     /**
      * @param string $title
      *
-     * @return Export
+     * @return $this
      */
     public function setSheetTitle($title)
     {
@@ -221,14 +193,7 @@ class Export extends AbstractPortation
      */
     protected function _getExtension($outputType)
     {
-        $extensions = array('CSV'          => '.csv',
-                            'Excel5'       => '.xls',
-                            'Excel2007'    => '.xlsx',
-                            'XML'          => '.xml',
-                            'HTML'         => '.html',
-                            'OpenDocument' => '.ods',
-                            'PDF'          => '.pdf',
-        );
+        $extensions = self::$extensions;
 
         if (empty($extensions[$outputType]))
             throw new \InvalidArgumentException("This filename has no extension and the output type is invalid.");

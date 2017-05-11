@@ -17,12 +17,52 @@ abstract class AbstractPortation
     /**
      * @var array
      */
-    public static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '');
+    protected static $defaultOptions = array('label' => '', 'visible' => true, 'position' => 'auto', 'getter' => '', 'setter' => '');
 
     /**
      * @var array
      */
-    public static $replacablePrefix = array('get', 'is', 'has', 'my', 'set', 'add');
+    protected static $replaceablePrefixes = array('get', 'is', 'has', 'my', 'set', 'add');
+
+    /**
+     * @var array
+     */
+    protected static $extensions = array('CSV'          => '.csv',
+                                         'Excel5'       => '.xls',
+                                         'Excel2007'    => '.xlsx',
+                                         'XML'          => '.xml',
+                                         'HTML'         => '.html',
+                                         'OpenDocument' => '.ods',
+                                         'PDF'          => '.pdf');
+
+    /**
+     * Get a well formatted column name (without prefix or useless chars)
+     *
+     * @param string $name
+     * @param bool   $replacePrefix
+     *
+     * @return string
+     */
+    public static function getColumnName($name, $replacePrefix = true)
+    {
+        if ($replacePrefix) $name = preg_replace('/^(?>'.implode('|', self::$replaceablePrefixes).')/', '', $name);
+
+        $name = trim($name, '_');
+
+        return $name;
+    }
+
+    /**
+     * Format an array to match a valid options array
+     *
+     * @param array $options
+     *
+     * @return array
+     */
+    public static function formatOptionsArray(array $options)
+    {
+        return array_merge(self::$defaultOptions, array_intersect_key($options, self::$defaultOptions));
+    }
 
     /* END OF STATIC PART */
 
@@ -52,6 +92,16 @@ abstract class AbstractPortation
     protected $_annotate = false;
 
     /**
+     * @var string
+     */
+    protected $_fallbackValue = '';
+
+    /**
+     * @var string
+     */
+    protected $_csvDelimiter = '';
+
+    /**
      * @var TranslatorInterface
      */
     protected $_translator = null;
@@ -69,34 +119,6 @@ abstract class AbstractPortation
     }
 
     /**
-     * Get a well formatted column name (without prefix or useless chars)
-     *
-     * @param string $name
-     *
-     * @return string
-     */
-    public static function getColumnName($name, $replacePrefix = true)
-    {
-        if ($replacePrefix) $name = preg_replace('/^(?>'.implode('|', self::$replacablePrefix).')/', '', $name);
-
-        $name = trim($name, '_');
-
-        return $name;
-    }
-
-    /**
-     * Format an array to match a valid options array
-     *
-     * @param array $options
-     *
-     * @return array
-     */
-    public static function formatOptionsArray(array $options)
-    {
-        return array_merge(self::$defaultOptions, array_intersect_key($options, self::$defaultOptions));
-    }
-
-    /**
      * @return \PHPExcel
      */
     public function getPhpExcelObject()
@@ -109,7 +131,7 @@ abstract class AbstractPortation
      *
      * @param \PHPExcel_DocumentProperties $properties
      *
-     * @return AbstractPortation
+     * @return $this
      */
     public function setProperties(\PHPExcel_DocumentProperties $properties)
     {
@@ -148,7 +170,7 @@ abstract class AbstractPortation
     /**
      * @param string $column
      *
-     * @return AbstractPortation
+     * @return $this
      *
      * @throws \OutOfBoundsException
      */
@@ -181,7 +203,7 @@ abstract class AbstractPortation
      * @param string $column
      * @param array  $options
      *
-     * @return AbstractPortation
+     * @return $this
      *
      * @throws \OutOfBoundsException
      */
@@ -200,7 +222,7 @@ abstract class AbstractPortation
      * @param string $option
      * @param mixed  $value
      *
-     * @return AbstractPortation
+     * @return $this
      *
      * @throws \OutOfBoundsException
      */
@@ -220,7 +242,7 @@ abstract class AbstractPortation
     /**
      * @param bool $visible
      *
-     * @return AbstractPortation
+     * @return $this
      */
     public function setAllVisible($visible = true)
     {
@@ -232,7 +254,7 @@ abstract class AbstractPortation
     }
 
     /**
-     * @return AbstractPortation
+     * @return $this
      */
     public function setAllPositionAuto()
     {
@@ -246,7 +268,7 @@ abstract class AbstractPortation
     /**
      * @param array $columns
      *
-     * @return AbstractPortation
+     * @return $this
      *
      * @throws \OutOfBoundsException
      */
@@ -266,7 +288,7 @@ abstract class AbstractPortation
      * @param string $column
      * @param array  $options
      *
-     * @return AbstractPortation
+     * @return $this
      */
     protected function _addColumn($column, array $options)
     {
@@ -274,6 +296,49 @@ abstract class AbstractPortation
             throw new \InvalidArgumentException("This is not a valid column name.");
 
         $this->_columns[$column] = self::formatOptionsArray($options);
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFallbackValue()
+    {
+        return $this->_fallbackValue;
+    }
+
+    /**
+     * Set the fallback value if a cell value is empty for an entity.
+     * Default is to put an empty string in the cell.
+     *
+     * @param string $fallbackValue
+     *
+     * @return $this
+     */
+    public function setFallbackValue($fallbackValue = '')
+    {
+        $this->_fallbackValue = $fallbackValue;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCsvDelimiter()
+    {
+        return $this->_csvDelimiter;
+    }
+
+    /**
+     * @param $delimiter
+     *
+     * @return $this
+     */
+    public function setCsvDelimiter($delimiter)
+    {
+        $this->_csvDelimiter = $delimiter;
 
         return $this;
     }
