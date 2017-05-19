@@ -1,7 +1,9 @@
 <?php
 namespace SosthenG\EntityPortationBundle;
 
+use Doctrine\Common\Annotations\AnnotationReader;
 use Liuggio\ExcelBundle\Factory;
+use SosthenG\EntityPortationBundle\Annotation\EntityPortationReader;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -27,13 +29,13 @@ abstract class AbstractPortation
     /**
      * @var array
      */
-    protected static $extensions = array('CSV'          => '.csv',
-                                         'Excel5'       => '.xls',
-                                         'Excel2007'    => '.xlsx',
-                                         'XML'          => '.xml',
-                                         'HTML'         => '.html',
-                                         'OpenDocument' => '.ods',
-                                         'PDF'          => '.pdf');
+    protected static $extensions = array('CSV'          => 'csv',
+                                         'Excel5'       => 'xls',
+                                         'Excel2007'    => 'xlsx',
+                                         'XML'          => 'xml',
+                                         'HTML'         => 'html',
+                                         'OpenDocument' => 'ods',
+                                         'PDF'          => 'pdf');
 
     /**
      * Get a well formatted column name (without prefix or useless chars)
@@ -341,5 +343,24 @@ abstract class AbstractPortation
         $this->_csvDelimiter = $delimiter;
 
         return $this;
+    }
+
+    /**
+     * Please ensure your class annotation is on the parent class if you have differents entities.
+     * If not, this method will only takes the first entity parameters
+     *
+     * @param object|string $entity
+     */
+    protected function _setPropertiesFromEntitiesAnnotation($entity)
+    {
+        $reader = new EntityPortationReader(new AnnotationReader());
+
+        $properties = $reader->extractEntityParameters($entity);
+
+        if (isset($this->_sheetTitle) && !empty($properties->sheetTitle)) $this->_sheetTitle = $properties->sheetTitle;
+        if (!empty($properties->fallBackValue)) $this->_fallbackValue = $properties->fallBackValue;
+        if (!empty($properties->csvDelimiter)) $this->_csvDelimiter = $properties->csvDelimiter;
+
+        $this->_annotate = !empty($properties);
     }
 }

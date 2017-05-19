@@ -57,16 +57,16 @@ class EntityPortationReader
     }
 
     /**
-     * @param \ReflectionObject $reflectionObject
+     * @param \ReflectionClass  $reflectionClass
      * @param bool              $replaceIfExists
      * @param bool              $annotate
      */
-    protected function extractColumnsFromProperties(\ReflectionObject $reflectionObject, $replaceIfExists, $annotate) {
+    protected function extractColumnsFromProperties(\ReflectionClass $reflectionClass, $replaceIfExists, $annotate) {
 
         if ($annotate) // If annotate mode, get all properties to check their annotations
-            $properties = $reflectionObject->getProperties();
+            $properties = $reflectionClass->getProperties();
         else
-            $properties = $reflectionObject->getProperties(\ReflectionProperty::IS_PUBLIC);
+            $properties = $reflectionClass->getProperties(\ReflectionProperty::IS_PUBLIC);
 
         // Sort the properties by there original class, to have the parent properties first, then the children's in order of inheritance
         $this->_sortElements($properties);
@@ -92,15 +92,15 @@ class EntityPortationReader
     }
 
     /**
-     * @param \ReflectionObject $reflectionObject
+     * @param \ReflectionClass  $reflectionClass
      * @param bool              $replaceIfExists
      * @param bool              $annotate
      */
-    protected function extractColumnsFromMethods(\ReflectionObject $reflectionObject, $replaceIfExists, $annotate) {
+    protected function extractColumnsFromMethods(\ReflectionClass $reflectionClass, $replaceIfExists, $annotate) {
         if ($annotate) // If annotate mode, get all methods to check their annotations
-            $methods = $reflectionObject->getMethods();
+            $methods = $reflectionClass->getMethods();
         else
-            $methods = $reflectionObject->getMethods(\ReflectionMethod::IS_PUBLIC);
+            $methods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
 
         // Sort the methods by there original class, to have the parent methods first, then the children's in order of inheritance
         $this->_sortElements($methods);
@@ -159,22 +159,22 @@ class EntityPortationReader
      * Be careful, if two differents childs redefine the annotation differently, only one of them will be keeped.
      * To change this behavior, pass (bool)false as a second argument
      *
-     * @param object $entity
-     * @param bool   $replaceIfExists Default = true
-     * @param bool   $annotate Default = false
+     * @param object|string $entity
+     * @param bool          $replaceIfExists Default = true
+     * @param bool          $annotate Default = false
      *
      * @return array The extracted columns
      */
     public function extractColumnsFromEntity($entity, $replaceIfExists = true, $annotate = false)
     {
-        if (!is_object($entity))
-            throw new \InvalidArgumentException("The parameter of the extraction method must be an object.");
+        if (!is_object($entity) && !class_exists($entity))
+            throw new \InvalidArgumentException("The parameter of the extraction method must be an object or a class name.");
 
-        $reflectionObject = new \ReflectionObject($entity);
+        $reflectionClass = new \ReflectionClass($entity);
 
-        $this->extractColumnsFromProperties($reflectionObject, $replaceIfExists, $annotate);
+        $this->extractColumnsFromProperties($reflectionClass, $replaceIfExists, $annotate);
 
-        $this->extractColumnsFromMethods($reflectionObject, $replaceIfExists, $annotate);
+        $this->extractColumnsFromMethods($reflectionClass, $replaceIfExists, $annotate);
 
         return $this->_columns;
     }

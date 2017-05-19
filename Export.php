@@ -61,7 +61,7 @@ class Export extends AbstractPortation
         $this->_replaceIfExists = $replaceIfExists;
         $this->_entitiesHaveSameClass = $sameClass;
 
-        $this->_setExportPropertiesFromEntitiesAnnotation();
+        $this->_setPropertiesFromEntitiesAnnotation($this->_entities[0]);
 
         $this->_setColumnsFromReader();
 
@@ -90,7 +90,7 @@ class Export extends AbstractPortation
 
         // If there is no extension, add the good one
         if (preg_match('/\.[a-zA-Z]+$/', $output) === 0) {
-            $output .= $this->_getExtension($outputType);
+            $output .= '.'.$this->_getExtension($outputType);
         }
 
         $writer   = $this->_phpExcelFactory->createWriter($this->_phpExcelObject, $outputType);
@@ -134,7 +134,7 @@ class Export extends AbstractPortation
 
         // If there is no extension, add the good one
         if (preg_match('/\.[a-zA-Z]+$/', $output) === 0) {
-            $output .= $this->_getExtension($outputType);
+            $output .= '.'.$this->_getExtension($outputType);
         }
 
         $writer = $this->_phpExcelFactory->createWriter($this->_phpExcelObject, $outputType);
@@ -167,23 +167,6 @@ class Export extends AbstractPortation
         $this->_sheetTitle = $title;
 
         return $this;
-    }
-
-    /**
-     * Please ensure your class annotation is on the parent class if you have differents entities.
-     * If not, this method will only takes the first entity parameters
-     */
-    protected function _setExportPropertiesFromEntitiesAnnotation()
-    {
-        $reader = new EntityPortationReader(new AnnotationReader());
-
-        $properties = $reader->extractEntityParameters($this->_entities[0]);
-
-        if (!empty($properties->sheetTitle)) $this->_sheetTitle = $properties->sheetTitle;
-        if (!empty($properties->fallBackValue)) $this->_fallbackValue = $properties->fallBackValue;
-        if (!empty($properties->csvDelimiter)) $this->_csvDelimiter = $properties->csvDelimiter;
-
-        $this->_annotate = !empty($properties);
     }
 
     /**
@@ -313,12 +296,10 @@ class Export extends AbstractPortation
      * @param object             $object
      *
      * @return mixed
-     *
-     * @throws MethodNotFoundException
      */
     protected function _checkPossibleGetters(\ReflectionObject $refl, $property, $object)
     {
-        foreach (self::$replacablePrefix as $prefix) {
+        foreach (self::$replaceablePrefixes as $prefix) {
             if ($refl->hasMethod($prefix.ucfirst($property)) && $refl->getMethod($prefix.ucfirst($property))->isPublic()) {
                 return $refl->getMethod($prefix.ucfirst($property))->invoke($object);
             }
@@ -334,7 +315,7 @@ class Export extends AbstractPortation
      */
     protected function _setColumnsFromReader()
     {
-        $reader = new EntityPortationReader(new AnnotationReader(), 'EXPORT');
+        $reader = new EntityPortationReader(new AnnotationReader());
 
         // If all entities are from the exact same class, just add the columns of the first one which are the sames for the others
         if ($this->_entitiesAreInstanceOfSameClass()) {

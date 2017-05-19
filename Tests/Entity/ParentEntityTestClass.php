@@ -27,6 +27,9 @@ class ParentEntityTestClass
      */
     private $lastname;
 
+    /**
+     * @PortableProperty(label="Âge", position="3")
+     */
     public $age;
 
     /**
@@ -37,12 +40,12 @@ class ParentEntityTestClass
      * @param $lastname
      * @param $age
      */
-    public function __construct($id, $firstname, $lastname, $age)
+    public function __construct($id = null, $firstname = null, $lastname = null, $age = null)
     {
-        $this->id        = $id;
-        $this->firstname = $firstname;
-        $this->lastname  = $lastname;
-        $this->age       = $age;
+        if (!empty($id)) $this->id = $id;
+        if (!empty($firstname)) $this->firstname = $firstname;
+        if (!empty($lastname)) $this->lastname = $lastname;
+        if (!empty($age)) $this->age = $age;
     }
 
     /**
@@ -68,4 +71,53 @@ class ParentEntityTestClass
     {
         return $this->lastname;
     }
+
+    /**
+     * @param mixed $id
+     *
+     * @return ParentEntityTestClass
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    /**
+     * @param mixed $firstname
+     *
+     * @return ParentEntityTestClass
+     */
+    public function setFirstname($firstname)
+    {
+        $this->firstname = $firstname;
+
+        return $this;
+    }
+
+    /**
+     * @param mixed $lastname
+     *
+     * @return ParentEntityTestClass
+     */
+    public function setLastname($lastname)
+    {
+        $this->lastname = $lastname;
+
+        return $this;
+    }
+
+    /**
+     * @param mixed $age
+     *
+     * @return ParentEntityTestClass
+     */
+    public function setAge($age)
+    {
+        $this->age = $age;
+
+        return $this;
+    }
+
 }

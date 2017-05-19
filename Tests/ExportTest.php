@@ -12,12 +12,12 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Class ConverterTest
+ * Class ExportTest
  *
  * @package SosthenG\EntityPortationBundle\Tests
  * @author  Sosthèn Gaillard <sosthen.gaillard@gmail.com>
  */
-class ConverterTest extends KernelTestCase
+class ExportTest extends KernelTestCase
 {
     public $phpexcel   = null;
 
