@@ -139,10 +139,10 @@ class Import extends AbstractPortation
         return null;
     }
 
-    protected function addNotFoundValue($col, $row, $value)
+    protected function addNotFoundValue($row, $key, $value)
     {
         if (!array_key_exists($row, $this->_columnsNotFound)) $this->_columnsNotFound[$row] = array();
-        $this->_columnsNotFound[$row][$col] = $value;
+        $this->_columnsNotFound[$row][$key] = $value;
     }
 
     public function getNotFoundValues()
@@ -191,12 +191,12 @@ class Import extends AbstractPortation
                 }
                 // Cannot set property
                 else {
-                    $this->addNotFoundValue($col, $row, $value);
+                    $this->addNotFoundValue($row, $columnKey, $value);
                 }
             }
             else {
                 // TODO : without header, use position (and maybe a type detection...)
-                $this->addNotFoundValue($col, $row, $value);
+                $this->addNotFoundValue($row, $col, $value);
             }
         }
 
