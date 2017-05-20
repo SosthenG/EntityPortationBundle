@@ -2,7 +2,6 @@
 namespace SosthenG\EntityPortationBundle;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Prophecy\Exception\Doubler\MethodNotFoundException;
 use SosthenG\EntityPortationBundle\Annotation\EntityPortationReader;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -84,7 +83,7 @@ class Export extends AbstractPortation
      *
      * @throws \OutOfBoundsException
      */
-    public function getResponse($outputType, $output)
+    public function getResponse($outputType, $output, $encoding = "UTF8")
     {
         $this->_createPHPExcelObject();
 
@@ -271,8 +270,6 @@ class Export extends AbstractPortation
      * @param mixed   $value
      *
      * @return string
-     *
-     * @throws MethodNotFoundException
      */
     protected function _convertValue($value)
     {

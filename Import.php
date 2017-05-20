@@ -3,7 +3,6 @@ namespace SosthenG\EntityPortationBundle;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Collections\ArrayCollection;
-use Prophecy\Exception\Doubler\MethodNotFoundException;
 use SosthenG\EntityPortationBundle\Annotation\EntityPortationReader;
 
 /**
