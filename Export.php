@@ -251,6 +251,11 @@ class Export extends AbstractPortation
             }
         }
 
+        foreach ($this->_columns as $column => $options) {
+            $sheet->getColumnDimension($options['cell'])->setAutoSize(true);
+            $sheet->getStyle($options['cell'].'1')->getFont()->setBold(true);
+        }
+
         if (!empty($this->_sheetTitle)) {
             $sheet->setTitle($this->_sheetTitle);
         }
